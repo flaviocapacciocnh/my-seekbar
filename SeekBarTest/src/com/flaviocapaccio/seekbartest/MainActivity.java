@@ -7,9 +7,9 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Paint.Style;
-import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
@@ -21,6 +21,7 @@ public class MainActivity extends Activity {
 	TextView currentTv = null;
 	int minValue = -30;
 	int maxValue;
+
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -55,25 +56,41 @@ public class MainActivity extends Activity {
 					boolean fromUser) {
 				currentTv.setText("" + (progress+minValue));
 				
-				seekBar.setThumb(writeOnDrawable(R.drawable.ic_launcher,"" + (progress+minValue)));
+				Bitmap bm = BitmapFactory.decodeResource(getResources(), R.drawable.horizbar).copy(Bitmap.Config.ARGB_8888, true);
+				
+//				Paint paint = new Paint(); 
+//				paint.setStyle(Style.FILL);  
+//				paint.setColor(Color.BLACK);
+//				paint.setTextSize(20); 
+				
+//				Canvas canvas = new Canvas(bm);
+//				canvas.drawText("Ciao", 0, bm.getHeight()/2, paint);
+
+
+//				seekBar.setThumb(writeOnDrawable(R.id.seekBar1,"" + (progress+minValue)));
+
 			}
 		});
+		
+		
 	}
 	
+	
+
 	public BitmapDrawable writeOnDrawable(int drawableId, String text){
+	
+		Bitmap bm = BitmapFactory.decodeResource(getResources(), drawableId).copy(Bitmap.Config.ARGB_8888, true);
 
-        Bitmap bm = BitmapFactory.decodeResource(getResources(), drawableId).copy(Bitmap.Config.ARGB_8888, true);
+		Paint paint = new Paint(); 
+		paint.setStyle(Style.FILL);  
+		paint.setColor(Color.BLACK);
+		paint.setTextSize(20); 
 
-        Paint paint = new Paint(); 
-        paint.setStyle(Style.FILL);  
-        paint.setColor(Color.BLACK); 
-        paint.setTextSize(20); 
+		Canvas canvas = new Canvas(bm);
+		canvas.drawText(text, 0, bm.getHeight()/2, paint);
 
-        Canvas canvas = new Canvas(bm);
-        canvas.drawText(text, 0, bm.getHeight()/2, paint);
-
-        return new BitmapDrawable(bm);
-    }
+		return new BitmapDrawable(bm);
+	}
 
 
 	@Override

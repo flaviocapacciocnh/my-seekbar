@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="blu_top_gradient_progress_bar">#FF1172A4</color>
+    <color name="blu_bottom_gradient_progress_bar">#FF08384F</color>
+    <color name="grey_progress_bar">#EF333333</color>
+    <color name="white">#FFFFFFFF</color>
+</resources>

@@ -9,17 +9,15 @@ import android.graphics.Paint;
 import android.graphics.Paint.Style;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 
 public class MainActivity extends Activity {
-	TextView minTv = null;
-	TextView maxTv = null;
-	TextView currentTv = null;
-	int minValue = -30;
+	
+	TextView progressTv = null;
+	int minValue = 0;
 	int maxValue;
 
 
@@ -27,14 +25,10 @@ public class MainActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-		minTv = (TextView) findViewById(R.id.minTv);
-		maxTv = (TextView) findViewById(R.id.maxTv);
-		currentTv = (TextView) findViewById(R.id.currentTv);
+		
+		progressTv = (TextView) findViewById(R.id.tvProgress);
 
-		minTv.setText(Integer.toString(minValue));
-		maxTv.setText("270");
-		currentTv.setText("0");
-		SeekBar seekBar = (SeekBar) findViewById(R.id.seekBar1);
+		SeekBar seekBar = (SeekBar) findViewById(R.id.seekBar);
 		seekBar.setMax(270);
 
 		seekBar.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
@@ -54,20 +48,9 @@ public class MainActivity extends Activity {
 			@Override
 			public void onProgressChanged(SeekBar seekBar, int progress,
 					boolean fromUser) {
-				currentTv.setText("" + (progress+minValue));
+				progressTv.setText("" + (progress+minValue));
 				
-				Bitmap bm = BitmapFactory.decodeResource(getResources(), R.drawable.horizbar).copy(Bitmap.Config.ARGB_8888, true);
-				
-//				Paint paint = new Paint(); 
-//				paint.setStyle(Style.FILL);  
-//				paint.setColor(Color.BLACK);
-//				paint.setTextSize(20); 
-				
-//				Canvas canvas = new Canvas(bm);
-//				canvas.drawText("Ciao", 0, bm.getHeight()/2, paint);
 
-
-//				seekBar.setThumb(writeOnDrawable(R.id.seekBar1,"" + (progress+minValue)));
 
 			}
 		});
@@ -75,22 +58,6 @@ public class MainActivity extends Activity {
 		
 	}
 	
-	
-
-	public BitmapDrawable writeOnDrawable(int drawableId, String text){
-	
-		Bitmap bm = BitmapFactory.decodeResource(getResources(), drawableId).copy(Bitmap.Config.ARGB_8888, true);
-
-		Paint paint = new Paint(); 
-		paint.setStyle(Style.FILL);  
-		paint.setColor(Color.BLACK);
-		paint.setTextSize(20); 
-
-		Canvas canvas = new Canvas(bm);
-		canvas.drawText(text, 0, bm.getHeight()/2, paint);
-
-		return new BitmapDrawable(bm);
-	}
 
 
 	@Override

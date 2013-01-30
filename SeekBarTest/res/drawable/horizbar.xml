@@ -16,8 +16,8 @@
             <corners
               android:radius="2dip" />
             <gradient
-              android:startColor="@color/blu_top_gradient_progress_bar"
-              android:endColor="@color/blu_bottom_gradient_progress_bar"
+              android:startColor="@color/blu_bottom_gradient_progress_bar"
+              android:endColor="@color/blu_top_gradient_progress_bar"
               android:angle="90" />
          </shape>
       </clip>

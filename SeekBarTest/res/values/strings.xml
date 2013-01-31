@@ -4,5 +4,6 @@
     <string name="app_name">SeekBarTest</string>
     <string name="hello_world">Hello world!</string>
     <string name="menu_settings">Settings</string>
+    <string name="invalid_input_value">Valore inserito non valido!</string>
 
 </resources>

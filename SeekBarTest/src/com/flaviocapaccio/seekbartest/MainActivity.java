@@ -38,7 +38,6 @@ public class MainActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		//TODO elimina uno dei layout. Questo è per un test.
 		setContentView(R.layout.activity_main);
 
 		progressTv = (TextView) findViewById(R.id.tvProgress);
@@ -63,7 +62,6 @@ public class MainActivity extends Activity {
 
 			public void onClick(View v) {
 				setMinValue(getMinValue() - step);
-				minProgressValueView.setText("" + getMinValue());
 			}
 		});
 
@@ -72,7 +70,6 @@ public class MainActivity extends Activity {
 
 			public void onClick(View v) {
 				setMaxValue(getMaxValue() + step);
-				maxProgressValueView.setText("" + getMaxValue());
 			}
 		});
 
@@ -82,7 +79,7 @@ public class MainActivity extends Activity {
 			public void onClick(View v) {
 				try {
 					int min = Integer.parseInt(minEditText.getText().toString());
-					minProgressValueView.setText("" + min);
+					minEditText.setText("");
 					setMinValue(min);
 				} catch (NumberFormatException e){
 					Toast.makeText(getApplicationContext(), R.string.invalid_input_value, Toast.LENGTH_SHORT).show();
@@ -95,7 +92,7 @@ public class MainActivity extends Activity {
 			public void onClick(View v) {
 				try {
 					int max = Integer.parseInt(maxEditText.getText().toString());
-					maxProgressValueView.setText("" + max);
+					maxEditText.setText("");
 					setMaxValue(max);
 				} catch (NumberFormatException e){
 					Toast.makeText(getApplicationContext(), R.string.invalid_input_value, Toast.LENGTH_SHORT).show();
@@ -128,6 +125,25 @@ public class MainActivity extends Activity {
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.activity_main, menu);
 		return true;
+	}
+	
+	
+
+	@Override
+	protected void onRestoreInstanceState(Bundle savedInstanceState) {
+		// TODO Auto-generated method stub
+		super.onRestoreInstanceState(savedInstanceState);
+//		setShiftProgress(savedInstanceState.getInt("shiftProgress"));
+		setMinValue(savedInstanceState.getInt("minValue"));
+		setMaxValue(savedInstanceState.getInt("maxValue"));
+	}
+
+	@Override
+	protected void onSaveInstanceState(Bundle outState) {
+		super.onSaveInstanceState(outState);
+//		outState.putInt("shiftProgress", shiftProgress);
+		outState.putInt("minValue", minValue);
+		outState.putInt("maxValue", maxValue);
 	}
 
 	public int getMinValue() {
@@ -162,7 +178,8 @@ public class MainActivity extends Activity {
 		seekBar.setMax(getMaxValue() - minValue);
 		seekBar.setProgress( 0 );
 		progressTv.setText("" + (getShiftProgress()) );
-		
+		minProgressValueView.setText("" + getMinValue());
+		minProgressValueView.setText("" + minValue);
 	}
 
 	public int getMaxValue() {
@@ -170,7 +187,7 @@ public class MainActivity extends Activity {
 	}
 
 	public void setMaxValue(int maxValue) {
-		if(minValue>getMaxValue()){
+		if(maxValue<getMinValue()){
 			Toast.makeText(this, R.string.indalid_max, Toast.LENGTH_LONG).show();
 			return;
 		}
@@ -179,7 +196,9 @@ public class MainActivity extends Activity {
 		this.maxValue = maxValue;
 		seekBar.setProgress( 0 );
 		progressTv.setText("" + (getShiftProgress()) );
-
+		maxProgressValueView.setText("" + getMaxValue());
+		
+//		maxProgressValueView.setText("" + max);
 	}
 
 	public int getShiftProgress() {

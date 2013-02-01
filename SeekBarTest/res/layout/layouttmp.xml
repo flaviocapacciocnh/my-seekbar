@@ -38,6 +38,7 @@
 
         <TextView
             android:id="@+id/tvProgress"
+            android:freezesText="true"
             android:layout_width="wrap_content"
             android:layout_height="40dp"
             android:layout_centerInParent="true"
@@ -62,6 +63,7 @@
         android:layout_column="0"
         android:layout_row="1"
         android:gravity="left"
+        android:freezesText="true"
         android:text="0"
         android:textStyle="bold"
         android:width="40dp" />
@@ -73,6 +75,7 @@
         android:layout_column="2"
         android:layout_row="1"
         android:gravity="right"
+        android:freezesText="true"
         android:text="300"
         android:textStyle="bold"
         android:width="40dp" />
@@ -90,7 +93,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="2"
-            android:hint="Min"
+            android:hint="@string/min_hint"
             android:inputType="numberSigned" />
 
         <Button
@@ -98,7 +101,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Set Min" >
+            android:text="@string/set_min" >
         </Button>
     </LinearLayout>
 
@@ -115,7 +118,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="2"
-            android:hint="Max"
+            android:hint="@string/max_hint"
             android:inputType="numberSigned" />
 
         <Button
@@ -123,7 +126,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Set Max" >
+            android:text="@string/set_max" >
         </Button>
     </LinearLayout>
 

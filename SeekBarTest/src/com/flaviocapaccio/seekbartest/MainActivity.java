@@ -2,7 +2,6 @@ package com.flaviocapaccio.seekbartest;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -10,9 +9,9 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.SeekBar;
-import android.widget.Toast;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class MainActivity extends Activity {
 
@@ -34,13 +33,13 @@ public class MainActivity extends Activity {
 	int minValue = 0;
 	int maxValue = 300;
 	int shiftProgress = 0;
+	final int step = 1;
 
-	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
 		//TODO elimina uno dei layout. Questo è per un test.
-		setContentView(R.layout.layouttmp);
+		setContentView(R.layout.activity_main);
 
 		progressTv = (TextView) findViewById(R.id.tvProgress);
 
@@ -59,29 +58,26 @@ public class MainActivity extends Activity {
 		maxEditText = (EditText) findViewById(R.id.maxValueInput);
 
 		
-
-
-
+		//decrease minValue of seekbar according to step value
 		leftButton.setOnClickListener(new OnClickListener() {
 
 			public void onClick(View v) {
-				//I can use a step instead of 1
-				seekBar.setProgress(seekBar.getProgress() - 1);
+				setMinValue(getMinValue() - step);
+				minProgressValueView.setText("" + getMinValue());
 			}
 		});
 
-
+		//increase maxValue of seekbar according to step value
 		rightButton.setOnClickListener(new OnClickListener() {
 
 			public void onClick(View v) {
-				//I can use a step instead of 1
-				seekBar.setProgress(seekBar.getProgress() + 1);
+				setMaxValue(getMaxValue() + step);
+				maxProgressValueView.setText("" + getMaxValue());
 			}
 		});
 
 
 		setMinButton.setOnClickListener(new OnClickListener() {
-
 			@Override
 			public void onClick(View v) {
 				try {
@@ -95,7 +91,6 @@ public class MainActivity extends Activity {
 		});
 
 		setMaxButton.setOnClickListener(new OnClickListener() {
-
 			@Override
 			public void onClick(View v) {
 				try {
@@ -108,10 +103,7 @@ public class MainActivity extends Activity {
 			}
 		});
 
-
-
 		seekBar.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
-
 			@Override
 			public void onStopTrackingTouch(SeekBar seekBar) {
 				// TODO Auto-generated method stub
@@ -143,7 +135,21 @@ public class MainActivity extends Activity {
 	}
 
 	public void setMinValue(int minValue) {
+		if(minValue>getMaxValue()){
+			Toast.makeText(this, R.string.indalid_min, Toast.LENGTH_LONG).show();
+			return;
+		}
 		int currentShiftProgress = getShiftProgress();
+		if(minValue<0){
+			if(minValue<getMinValue()){
+				int dif = getMinValue() - minValue;
+				setShiftProgress(currentShiftProgress + dif);
+			} else {
+				int dif = minValue - getMinValue();
+				setShiftProgress(currentShiftProgress - dif);
+			}
+		}
+ 
 		if(minValue<getMinValue()){
 			int dif = getMinValue() - minValue;
 			setShiftProgress(currentShiftProgress - dif);
@@ -154,9 +160,6 @@ public class MainActivity extends Activity {
 		
 		this.minValue = minValue;
 		seekBar.setMax(getMaxValue() - minValue);
-//		Lascio questa riga se voglio aggiornare lo shift; per mia scelta progettuale azzero il valore in quanto intendo che l'utente lo reimposti secondo il nuovo range
-		Log.d("Mylist", "FGetmin value: " + getMinValue() + " MinValue: " + minValue + " FCurrentShift: " + getShiftProgress() + " Currentshift: " + currentShiftProgress);
-//		seekBar.setProgress(currentProgress + currentShiftProgress);
 		seekBar.setProgress( 0 );
 		progressTv.setText("" + (getShiftProgress()) );
 		
@@ -167,27 +170,16 @@ public class MainActivity extends Activity {
 	}
 
 	public void setMaxValue(int maxValue) {
-		int currentShiftProgress = getShiftProgress();
-		int currentMax = getMaxValue();
-		if(maxValue>getMaxValue()){
-			int dif = maxValue - getMaxValue();
-			this.maxValue = getMaxValue() + dif;
-			seekBar.setMax(getMaxValue() + dif);
-//			int dif = getMaxValue() - maxValue;
-//			setShiftProgress(currentShiftProgress + dif);
-		} else {
-			int dif = getMaxValue() - maxValue;
-			this.maxValue = maxValue;
-			seekBar.setMax(maxValue);
-//			int dif = maxValue - getMinValue();
-//			setShiftProgress(currentShiftProgress + dif);
+		if(minValue>getMaxValue()){
+			Toast.makeText(this, R.string.indalid_max, Toast.LENGTH_LONG).show();
+			return;
 		}
 		
-		seekBar.setMax(this.maxValue);
-//		Lascio questa riga se voglio aggiornare lo shift; per mia scelta progettuale azzero il valore in quanto intendo che l'utente lo reimposti secondo il nuovo range
-//		seekBar.setProgress(currentProgress + currentShiftProgress);
+		seekBar.setMax(maxValue -  getShiftProgress());
+		this.maxValue = maxValue;
 		seekBar.setProgress( 0 );
 		progressTv.setText("" + (getShiftProgress()) );
+
 	}
 
 	public int getShiftProgress() {
@@ -197,6 +189,4 @@ public class MainActivity extends Activity {
 	public void setShiftProgress(int shiftProgress) {
 		this.shiftProgress = shiftProgress;
 	}
-
-	
 }

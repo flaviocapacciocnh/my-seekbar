@@ -5,5 +5,10 @@
     <string name="hello_world">Hello world!</string>
     <string name="menu_settings">Settings</string>
     <string name="invalid_input_value">Valore inserito non valido!</string>
-
+    <string name="min_hint">Min</string>
+    <string name="max_hint">Max</string>
+    <string name="set_min">Set Min</string>
+    <string name="set_max">Set Max</string>
+    <string name="indalid_max">Attenzione è stato inserito un valore massimo inferiore al minimo</string>
+    <string name="indalid_min">Attenzione è stato inserito un valore minimo superiore al massimo</string>
 </resources>

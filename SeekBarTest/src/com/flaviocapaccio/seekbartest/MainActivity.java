@@ -1,7 +1,9 @@
 package com.flaviocapaccio.seekbartest;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -116,6 +118,13 @@ public class MainActivity extends Activity {
 					boolean fromUser) {
 				progressTv.invalidate();
 				progressTv.setText("" + (getShiftProgress() + progress) );
+				
+				
+//				Associated files are not upload; they will be relaxed in next commit. Flavio
+				
+//				Intent intent = new Intent(getApplicationContext(), SeekBarService.class);
+//				intent.putExtra("Value", (getShiftProgress() + progress));
+//				startService(intent);
 			}
 		});
 	}
@@ -152,7 +161,9 @@ public class MainActivity extends Activity {
 
 	public void setMinValue(int minValue) {
 		if(minValue>getMaxValue()){
-			Toast.makeText(this, R.string.indalid_min, Toast.LENGTH_LONG).show();
+			Toast toast = Toast.makeText(getApplicationContext(), R.string.indalid_min, Toast.LENGTH_SHORT);
+			toast.setGravity(Gravity.TOP, 0, 0);
+			toast.show();
 			return;
 		}
 		int currentShiftProgress = getShiftProgress();
@@ -188,7 +199,9 @@ public class MainActivity extends Activity {
 
 	public void setMaxValue(int maxValue) {
 		if(maxValue<getMinValue()){
-			Toast.makeText(this, R.string.indalid_max, Toast.LENGTH_LONG).show();
+			Toast toast = Toast.makeText(getApplicationContext(), R.string.indalid_max, Toast.LENGTH_SHORT);
+			toast.setGravity(Gravity.TOP, 0, 0);
+			toast.show();
 			return;
 		}
 		

@@ -5,7 +5,7 @@
     android:layout_gravity="center"
     android:columnCount="3"
     android:padding="10dp"
-    android:rowCount="4" >
+    android:rowCount="5" >
 
     <ImageButton
         android:id="@+id/leftArrowButton"
@@ -129,5 +129,23 @@
             android:text="@string/set_max" >
         </Button>
     </LinearLayout>
+    
+    <LinearLayout
+        android:layout_width="300dp"
+        android:layout_height="wrap_content"
+        android:layout_column="0"
+        android:layout_columnSpan="3"
+        android:layout_row="4"
+        android:orientation="horizontal" >
+
+        <TextView
+            android:id="@+id/result_view"
+            android:padding="10dp"
+            android:freezesText="true"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:hint="@string/waiting" />
+        
+    </LinearLayout>    
 
 </GridLayout>

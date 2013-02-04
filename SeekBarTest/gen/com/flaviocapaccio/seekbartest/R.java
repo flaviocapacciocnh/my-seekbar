@@ -28,9 +28,10 @@ public final class R {
         public static final int leftArrowButton=0x7f080000;
         public static final int maxProgressValueView=0x7f080005;
         public static final int maxValueInput=0x7f080008;
-        public static final int menu_settings=0x7f08000a;
+        public static final int menu_settings=0x7f08000b;
         public static final int minProgressValueView=0x7f080004;
         public static final int minValueInput=0x7f080006;
+        public static final int result_view=0x7f08000a;
         public static final int rightArrowButton=0x7f080003;
         public static final int seekBar=0x7f080001;
         public static final int setMaxButton=0x7f080009;
@@ -54,6 +55,7 @@ public final class R {
         public static final int min_hint=0x7f050004;
         public static final int set_max=0x7f050007;
         public static final int set_min=0x7f050006;
+        public static final int waiting=0x7f05000a;
     }
     public static final class style {
         /** 

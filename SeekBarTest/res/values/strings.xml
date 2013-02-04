@@ -11,4 +11,5 @@
     <string name="set_max">Set Max</string>
     <string name="indalid_max">Attenzione è stato inserito un valore massimo inferiore al minimo</string>
     <string name="indalid_min">Attenzione è stato inserito un valore minimo superiore al massimo</string>
+    <string name="waiting">In attesa...</string>
 </resources>

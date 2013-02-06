@@ -7,9 +7,9 @@ import android.text.format.DateFormat;
 
 import com.flaviocapaccio.seekbartest.MainActivity.ResponseReceiver;
 
-public class SeekBarService extends IntentService {
+public class SeekBarServiceBroadcast extends IntentService {
 
-	public SeekBarService() {
+	public SeekBarServiceBroadcast() {
 		super("SeekBarService");
 	}
 
@@ -18,9 +18,9 @@ public class SeekBarService extends IntentService {
 		int tmp = intent.getExtras().getInt("Value");
 		
 		//I'm simulating time to perform an operation.
-		SystemClock.sleep(2500);
+		SystemClock.sleep(3000);
 		
-		String resultTxt = "Valore settato a " + tmp + ".\nUltimo aggiornamento: " + DateFormat.format("MM/dd/yy h:mmaa", System.currentTimeMillis()) + ".";
+		String resultTxt = "Broadcasted message: Valore settato a " + tmp + ".\nUltimo aggiornamento: " + DateFormat.format("MM/dd/yy h:mmaa", System.currentTimeMillis()) + ".";
 		
 		Intent broadcastIntent = new Intent();
 		broadcastIntent.setAction(ResponseReceiver.ACTION_RESP);

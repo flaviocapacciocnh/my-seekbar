@@ -2,10 +2,15 @@ package com.flaviocapaccio.seekbartest;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.IBinder;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.View;
@@ -18,16 +23,19 @@ import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class MainActivity extends Activity {
+import com.flaviocapaccio.seekbartest.SeekBarServiceBinding.LocalBinder;
+
+public class MainActivity extends Activity implements Callback{
 
 	private static final String MIN_VALUE = "minValue";
 	private static final String MAX_VALUE = "maxValue";
 	private static final String ACTUAL_PROGRESS = "actualProgress";
-	
-	
+
 	TextView progressTv;
 	TextView minProgressValueView;
 	TextView maxProgressValueView;
+	TextView result_view_4_broadcast_service;
+	TextView result_view_4_local_service;
 
 	SeekBar seekBar;
 
@@ -39,8 +47,13 @@ public class MainActivity extends Activity {
 
 	ImageButton leftButton;
 	ImageButton rightButton;
+
+	boolean mBound = false;
 	
 	ResponseReceiver receiver;
+	SeekBarServiceBinding mService;
+	
+	Handler handler = new Handler();
 
 	int minValue = 0;
 	int maxValue = 300;
@@ -49,10 +62,12 @@ public class MainActivity extends Activity {
 	final int step = 1;
 
 	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
 
+		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 
+		result_view_4_broadcast_service = (TextView) findViewById(R.id.result_view_4_broadcast_service);
+		result_view_4_local_service = (TextView) findViewById(R.id.result_view_4_local_service);
 		progressTv = (TextView) findViewById(R.id.tvProgress);
 
 		seekBar = (SeekBar) findViewById(R.id.seekBar);
@@ -69,13 +84,14 @@ public class MainActivity extends Activity {
 		minEditText = (EditText) findViewById(R.id.minValueInput);
 		maxEditText = (EditText) findViewById(R.id.maxValueInput);
 		
+		bindService(new Intent(this, SeekBarServiceBinding.class), mConnection, Context.BIND_AUTO_CREATE);
+
 		IntentFilter filter = new IntentFilter(ResponseReceiver.ACTION_RESP);
-        filter.addCategory(Intent.CATEGORY_DEFAULT);
-        receiver = new ResponseReceiver();
-        registerReceiver(receiver, filter);
+		filter.addCategory(Intent.CATEGORY_DEFAULT);
+		receiver = new ResponseReceiver();
+		registerReceiver(receiver, filter);
 
-
-		//decrease minValue of seekbar according to step value
+		//decrease minValue of seekbar according to step value and set progress to minimum value
 		leftButton.setOnClickListener(new OnClickListener() {
 
 			public void onClick(View v) {
@@ -83,7 +99,7 @@ public class MainActivity extends Activity {
 			}
 		});
 
-		//increase maxValue of seekbar according to step value
+		//increase maxValue of seekbar according to step value and set progress to minimum value
 		rightButton.setOnClickListener(new OnClickListener() {
 
 			public void onClick(View v) {
@@ -91,7 +107,7 @@ public class MainActivity extends Activity {
 			}
 		});
 
-
+		
 		setMinButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
@@ -119,12 +135,16 @@ public class MainActivity extends Activity {
 		});
 
 		seekBar.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
-			Intent intent = new Intent(getApplicationContext(), SeekBarService.class);
+			Intent intent = new Intent(getApplicationContext(), SeekBarServiceBroadcast.class);
 			@Override
 			public void onStopTrackingTouch(SeekBar seekBar) {
 
 				intent.putExtra("Value", (getShiftProgress() + actualProgress));
 				startService(intent);
+
+				if (mBound) {
+					mService.startThread(getShiftProgress() + actualProgress);
+				}
 			}
 
 			@Override
@@ -141,14 +161,24 @@ public class MainActivity extends Activity {
 			}
 		});
 	}
-	
+
 
 	protected void onPause() {
 		super.onPause();
 		unregisterReceiver(receiver);
 	}
-	
-	
+
+	@Override
+	protected void onStop() {
+		super.onStop();
+		// Unbind from the service
+		if (mBound) {
+			unbindService(mConnection);
+			mBound = false;
+		}
+	}
+
+
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
@@ -156,25 +186,14 @@ public class MainActivity extends Activity {
 		return true;
 	}
 
-
-
-	@Override
-	protected void onRestoreInstanceState(Bundle savedInstanceState) {
-		super.onRestoreInstanceState(savedInstanceState);
-		setMinValue(savedInstanceState.getInt(MIN_VALUE));
-		setMaxValue(savedInstanceState.getInt(MAX_VALUE));
-		seekBar.setProgress((savedInstanceState.getInt(ACTUAL_PROGRESS)));
-	}
-	
 	public class ResponseReceiver extends BroadcastReceiver {
-		   public static final String ACTION_RESP = "com.flaviocapaccio.intent.action.MESSAGE_PROCESSED";
-		   @Override
-		    public void onReceive(Context context, Intent intent) {
-		       TextView result_view = (TextView) findViewById(R.id.result_view);
-		       String text = intent.getStringExtra("Value_return");
-		       result_view.setText(text);
-			   }
+		public static final String ACTION_RESP = "com.flaviocapaccio.intent.action.MESSAGE_PROCESSED";
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			String text = intent.getStringExtra("Value_return");
+			result_view_4_broadcast_service.setText(text);
 		}
+	}
 
 	@Override
 	protected void onSaveInstanceState(Bundle outState) {
@@ -183,6 +202,31 @@ public class MainActivity extends Activity {
 		outState.putInt(MAX_VALUE, maxValue);
 		outState.putInt(ACTUAL_PROGRESS, actualProgress);
 	}
+	
+	@Override
+	protected void onRestoreInstanceState(Bundle savedInstanceState) {
+		super.onRestoreInstanceState(savedInstanceState);
+		setMinValue(savedInstanceState.getInt(MIN_VALUE));
+		setMaxValue(savedInstanceState.getInt(MAX_VALUE));
+		seekBar.setProgress((savedInstanceState.getInt(ACTUAL_PROGRESS)));
+	}
+
+	
+	private ServiceConnection mConnection = new ServiceConnection() {
+
+		@Override
+		public void onServiceConnected(ComponentName className, IBinder service) {
+			LocalBinder binder = (LocalBinder) service;
+			mService = binder.getService(MainActivity.this);
+			mBound = true;
+		}
+
+		@Override
+		public void onServiceDisconnected(ComponentName arg0) {
+			mBound = false;
+		}
+	};
+
 
 	public int getMinValue() {
 		return minValue;
@@ -219,11 +263,14 @@ public class MainActivity extends Activity {
 		seekBar.setProgress( 0 );
 		progressTv.setText("" + (getShiftProgress()) );
 		minProgressValueView.setText("" + getMinValue());
-		minProgressValueView.setText("" + minValue);
-		
-		Intent intent = new Intent(getApplicationContext(), SeekBarService.class);
+
+		Intent intent = new Intent(getApplicationContext(), SeekBarServiceBroadcast.class);
 		intent.putExtra("Value", (getShiftProgress() + actualProgress));
 		startService(intent);
+		
+		if (mBound) {
+			mService.startThread(getShiftProgress() + actualProgress);
+		}
 	}
 
 	public int getMaxValue() {
@@ -243,10 +290,14 @@ public class MainActivity extends Activity {
 		seekBar.setProgress( 0 );
 		progressTv.setText("" + (getShiftProgress()) );
 		maxProgressValueView.setText("" + getMaxValue());
-		
-		Intent intent = new Intent(getApplicationContext(), SeekBarService.class);
+
+		Intent intent = new Intent(getApplicationContext(), SeekBarServiceBroadcast.class);
 		intent.putExtra("Value", (getShiftProgress() + actualProgress));
 		startService(intent);
+		
+		if (mBound) {
+			mService.startThread(getShiftProgress() + actualProgress);
+		}
 	}
 
 	public int getShiftProgress() {
@@ -265,5 +316,18 @@ public class MainActivity extends Activity {
 
 	public void setActualProgress(int actualProgress) {
 		this.actualProgress = actualProgress;
+	}
+
+
+	@Override
+	public void notifySettingCompleted(final String s) {
+		
+		handler.post(new Runnable() {
+
+			@Override
+			public void run() {
+				result_view_4_local_service.setText(s);
+			}
+		});
 	}
 }

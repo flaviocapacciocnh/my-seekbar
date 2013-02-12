@@ -5,7 +5,7 @@
     android:layout_gravity="center"
     android:columnCount="3"
     android:padding="10dp"
-    android:rowCount="6" >
+    android:rowCount="7" >
 
     <ImageButton
         android:id="@+id/leftArrowButton"
@@ -144,10 +144,12 @@
             android:layout_height="match_parent"
             android:freezesText="true"
             android:hint="@string/waiting"
-            android:padding="10dp" />
+            android:paddingLeft="10dp"
+            android:padding="5dp"
+            android:textSize="@dimen/small_text_for_service_message" />
     </LinearLayout>
-    
-     <LinearLayout
+
+    <LinearLayout
         android:layout_width="300dp"
         android:layout_height="wrap_content"
         android:layout_column="0"
@@ -159,10 +161,30 @@
             android:id="@+id/result_view_4_local_service"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:text=""
             android:freezesText="true"
             android:hint="@string/waiting"
-            android:padding="10dp" />
+            android:paddingLeft="10dp"
+            android:padding="5dp"
+            android:textSize="@dimen/small_text_for_service_message" />
+    </LinearLayout>
+    
+     <LinearLayout
+        android:layout_width="300dp"
+        android:layout_height="wrap_content"
+        android:layout_column="0"
+        android:layout_columnSpan="3"
+        android:layout_row="6"
+        android:orientation="horizontal" >
+
+        <TextView
+            android:id="@+id/result_view_4_messenger_service"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:freezesText="true"
+            android:hint="@string/waiting"
+            android:paddingLeft="10dp"
+            android:padding="5dp"
+            android:textSize="@dimen/small_text_for_service_message" />
     </LinearLayout>
 
 </GridLayout>

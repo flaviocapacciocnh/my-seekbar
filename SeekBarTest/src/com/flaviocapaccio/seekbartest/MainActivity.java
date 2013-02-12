@@ -1,5 +1,7 @@
 package com.flaviocapaccio.seekbartest;
 
+import com.flaviocapaccio.seekbartest.SeekBarServiceBinding.LocalBinder;
+
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -10,6 +12,9 @@ import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
+import android.os.Messenger;
+import android.os.RemoteException;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
@@ -23,19 +28,21 @@ import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.flaviocapaccio.seekbartest.SeekBarServiceBinding.LocalBinder;
-
 public class MainActivity extends Activity implements Callback{
 
 	private static final String MIN_VALUE = "minValue";
 	private static final String MAX_VALUE = "maxValue";
 	private static final String ACTUAL_PROGRESS = "actualProgress";
+	
+	static final int MSG_PROGRESS = 1;
+	public static final int MSG_PROGRESS_EVALUATED = 2;
 
 	TextView progressTv;
 	TextView minProgressValueView;
 	TextView maxProgressValueView;
 	TextView result_view_4_broadcast_service;
 	TextView result_view_4_local_service;
+	TextView result_view_4_messenger_service;
 
 	SeekBar seekBar;
 
@@ -49,10 +56,10 @@ public class MainActivity extends Activity implements Callback{
 	ImageButton rightButton;
 
 	boolean mBound = false;
-	
+
 	ResponseReceiver receiver;
 	SeekBarServiceBinding mService;
-	
+
 	Handler handler = new Handler();
 
 	int minValue = 0;
@@ -61,6 +68,7 @@ public class MainActivity extends Activity implements Callback{
 	int actualProgress = 0;
 	final int step = 1;
 
+
 	protected void onCreate(Bundle savedInstanceState) {
 
 		super.onCreate(savedInstanceState);
@@ -68,6 +76,8 @@ public class MainActivity extends Activity implements Callback{
 
 		result_view_4_broadcast_service = (TextView) findViewById(R.id.result_view_4_broadcast_service);
 		result_view_4_local_service = (TextView) findViewById(R.id.result_view_4_local_service);
+		result_view_4_messenger_service = (TextView) findViewById(R.id.result_view_4_messenger_service);
+
 		progressTv = (TextView) findViewById(R.id.tvProgress);
 
 		seekBar = (SeekBar) findViewById(R.id.seekBar);
@@ -83,8 +93,9 @@ public class MainActivity extends Activity implements Callback{
 
 		minEditText = (EditText) findViewById(R.id.minValueInput);
 		maxEditText = (EditText) findViewById(R.id.maxValueInput);
-		
+
 		bindService(new Intent(this, SeekBarServiceBinding.class), mConnection, Context.BIND_AUTO_CREATE);
+
 
 		IntentFilter filter = new IntentFilter(ResponseReceiver.ACTION_RESP);
 		filter.addCategory(Intent.CATEGORY_DEFAULT);
@@ -107,7 +118,7 @@ public class MainActivity extends Activity implements Callback{
 			}
 		});
 
-		
+
 		setMinButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
@@ -145,7 +156,11 @@ public class MainActivity extends Activity implements Callback{
 				if (mBound) {
 					mService.startThread(getShiftProgress() + actualProgress);
 				}
+
+				sendMessage(getShiftProgress() + actualProgress);
 			}
+
+
 
 			@Override
 			public void onStartTrackingTouch(SeekBar seekBar) {
@@ -160,6 +175,13 @@ public class MainActivity extends Activity implements Callback{
 				actualProgress = progress;
 			}
 		});
+
+	}
+
+	@Override
+	protected void onStart() {
+		super.onStart();
+		bindService(new Intent(this, SeekBarServiceMessenger.class), mConnectionToMessengerService , Context.BIND_AUTO_CREATE);
 	}
 
 
@@ -171,10 +193,14 @@ public class MainActivity extends Activity implements Callback{
 	@Override
 	protected void onStop() {
 		super.onStop();
-		// Unbind from the service
 		if (mBound) {
 			unbindService(mConnection);
 			mBound = false;
+		}
+
+		if(serviceBound){
+			unbindService(mConnectionToMessengerService);
+			serviceBound = false;
 		}
 	}
 
@@ -202,7 +228,7 @@ public class MainActivity extends Activity implements Callback{
 		outState.putInt(MAX_VALUE, maxValue);
 		outState.putInt(ACTUAL_PROGRESS, actualProgress);
 	}
-	
+
 	@Override
 	protected void onRestoreInstanceState(Bundle savedInstanceState) {
 		super.onRestoreInstanceState(savedInstanceState);
@@ -211,7 +237,7 @@ public class MainActivity extends Activity implements Callback{
 		seekBar.setProgress((savedInstanceState.getInt(ACTUAL_PROGRESS)));
 	}
 
-	
+
 	private ServiceConnection mConnection = new ServiceConnection() {
 
 		@Override
@@ -267,10 +293,12 @@ public class MainActivity extends Activity implements Callback{
 		Intent intent = new Intent(getApplicationContext(), SeekBarServiceBroadcast.class);
 		intent.putExtra("Value", (getShiftProgress() + actualProgress));
 		startService(intent);
-		
+
 		if (mBound) {
 			mService.startThread(getShiftProgress() + actualProgress);
 		}
+		
+		sendMessage(getShiftProgress() + actualProgress);
 	}
 
 	public int getMaxValue() {
@@ -294,10 +322,12 @@ public class MainActivity extends Activity implements Callback{
 		Intent intent = new Intent(getApplicationContext(), SeekBarServiceBroadcast.class);
 		intent.putExtra("Value", (getShiftProgress() + actualProgress));
 		startService(intent);
-		
+
 		if (mBound) {
 			mService.startThread(getShiftProgress() + actualProgress);
 		}
+		
+		sendMessage(getShiftProgress() + actualProgress);
 	}
 
 	public int getShiftProgress() {
@@ -321,7 +351,7 @@ public class MainActivity extends Activity implements Callback{
 
 	@Override
 	public void notifySettingCompleted(final String s) {
-		
+
 		handler.post(new Runnable() {
 
 			@Override
@@ -330,4 +360,58 @@ public class MainActivity extends Activity implements Callback{
 			}
 		});
 	}
+
+	private void sendMessage(int value) {
+		if(serviceBound){
+			Message msg = Message.obtain(null, MSG_PROGRESS, value , 0);
+			msg.replyTo = replyMessenger;
+			try {
+				activityMessenger.send(msg);
+			} catch (RemoteException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}
+
+	// ----------------------------------
+	Messenger activityMessenger;
+	Boolean serviceBound;
+
+	private ServiceConnection mConnectionToMessengerService = new ServiceConnection() {
+
+		@Override
+		public void onServiceDisconnected(ComponentName arg0) {
+			activityMessenger = null;
+			serviceBound = false;
+		}
+
+		@Override
+		public void onServiceConnected(ComponentName arg0, IBinder service) {
+			activityMessenger = new Messenger(service);
+			serviceBound = true;
+
+		}
+	};
+
+
+	//I use this to manage reply message
+	final Messenger replyMessenger = new Messenger(new IncomingHandler());
+
+	class IncomingHandler extends Handler {
+		@Override
+
+		public void handleMessage(Message msg) {
+			switch (msg.what) {
+			case MSG_PROGRESS_EVALUATED:
+				String s = (String)msg.obj;
+				Log.d("Test", "Activity: Ricevuto " + s);
+				result_view_4_messenger_service.setText(s);
+				break;
+			default:
+				break;
+			}
+		}
+	}
+
 }

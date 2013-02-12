@@ -24,6 +24,7 @@
         </activity>
         <service android:name="com.flaviocapaccio.seekbartest.SeekBarServiceBroadcast"></service>
         <service android:name="com.flaviocapaccio.seekbartest.SeekBarServiceBinding"></service>
+        <service android:name="com.flaviocapaccio.seekbartest.SeekBarServiceMessenger"></service>
     </application>
 
 </manifest>

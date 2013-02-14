@@ -15,6 +15,7 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
+import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
@@ -33,7 +34,7 @@ public class MainActivity extends Activity implements Callback{
 	private static final String MIN_VALUE = "minValue";
 	private static final String MAX_VALUE = "maxValue";
 	private static final String ACTUAL_PROGRESS = "actualProgress";
-	
+
 	static final int MSG_PROGRESS = 1;
 	public static final int MSG_PROGRESS_EVALUATED = 2;
 
@@ -297,7 +298,7 @@ public class MainActivity extends Activity implements Callback{
 		if (mBound) {
 			mService.startThread(getShiftProgress() + actualProgress);
 		}
-		
+
 		sendMessage(getShiftProgress() + actualProgress);
 	}
 
@@ -326,7 +327,7 @@ public class MainActivity extends Activity implements Callback{
 		if (mBound) {
 			mService.startThread(getShiftProgress() + actualProgress);
 		}
-		
+
 		sendMessage(getShiftProgress() + actualProgress);
 	}
 
@@ -361,20 +362,31 @@ public class MainActivity extends Activity implements Callback{
 		});
 	}
 
-	private void sendMessage(int value) {
+	private void sendMessage(final int value) {
 		if(serviceBound){
-			Message msg = Message.obtain(null, MSG_PROGRESS, value , 0);
-			msg.replyTo = replyMessenger;
-			try {
-				activityMessenger.send(msg);
-			} catch (RemoteException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			//from here
+			Thread thread = new Thread() {
+				public void run() {
+
+					Message msg = Message.obtain(null, MSG_PROGRESS, value , 0);
+					Log.d("Control", "I'm here " + DateFormat.format("MM/dd/yy h:mmaa", System.currentTimeMillis()));
+					msg.replyTo = replyMessenger;
+					try {
+						Log.d("Control", "I'm here before send" + DateFormat.format("MM/dd/yy h:mmaa", System.currentTimeMillis()));
+						activityMessenger.send(msg);
+						Log.d("Control", "I'm here after send" + DateFormat.format("MM/dd/yy h:mmaa", System.currentTimeMillis()));
+					} catch (RemoteException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+
+				}
+			};
+			thread.start();
 		}
 	}
 
-	// ----------------------------------
+	// Most code for Communication with MessengerService (SeekBarServiceMessenger)
 	Messenger activityMessenger;
 	Boolean serviceBound;
 
@@ -394,24 +406,23 @@ public class MainActivity extends Activity implements Callback{
 		}
 	};
 
-
 	//I use this to manage reply message
 	final Messenger replyMessenger = new Messenger(new IncomingHandler());
 
 	class IncomingHandler extends Handler {
 		@Override
-
+		
 		public void handleMessage(Message msg) {
 			switch (msg.what) {
 			case MSG_PROGRESS_EVALUATED:
-				String s = (String)msg.obj;
-				Log.d("Test", "Activity: Ricevuto " + s);
-				result_view_4_messenger_service.setText(s);
+				result_view_4_messenger_service.setText(msg.obj.toString());
 				break;
 			default:
 				break;
 			}
 		}
 	}
+	
+	// End of code for Communication with MessengerService (SeekBarServiceMessenger)
 
 }

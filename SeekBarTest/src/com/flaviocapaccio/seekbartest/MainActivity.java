@@ -12,6 +12,7 @@ import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
@@ -44,6 +45,7 @@ public class MainActivity extends Activity implements Callback{
 	TextView result_view_4_broadcast_service;
 	TextView result_view_4_local_service;
 	TextView result_view_4_messenger_service;
+	TextView result_view_4_aidl_service;
 
 	SeekBar seekBar;
 
@@ -75,9 +77,16 @@ public class MainActivity extends Activity implements Callback{
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 
+
+		//for aidls
+		aidlConnection = new AidlConnection();
+		Intent intentToAidl = new Intent("com.flaviocapaccio.seekbartest.SeekBarServiceAidl");
+		bindService(intentToAidl, aidlConnection, Context.BIND_AUTO_CREATE);
+
 		result_view_4_broadcast_service = (TextView) findViewById(R.id.result_view_4_broadcast_service);
 		result_view_4_local_service = (TextView) findViewById(R.id.result_view_4_local_service);
 		result_view_4_messenger_service = (TextView) findViewById(R.id.result_view_4_messenger_service);
+		result_view_4_aidl_service = (TextView) findViewById(R.id.result_view_4_aidl_service);
 
 		progressTv = (TextView) findViewById(R.id.tvProgress);
 
@@ -158,11 +167,10 @@ public class MainActivity extends Activity implements Callback{
 					mService.startThread(getShiftProgress() + actualProgress);
 				}
 
-				sendMessage(getShiftProgress() + actualProgress);
+				sendMessageToMessengerService(getShiftProgress() + actualProgress);
+				sendMessageToAidlMessenger(getShiftProgress() + actualProgress);
 			}
-
-
-
+			
 			@Override
 			public void onStartTrackingTouch(SeekBar seekBar) {
 				// TODO Auto-generated method stub
@@ -177,7 +185,11 @@ public class MainActivity extends Activity implements Callback{
 			}
 		});
 
+
+
+
 	}
+	//end of onCreate()
 
 	@Override
 	protected void onStart() {
@@ -203,6 +215,11 @@ public class MainActivity extends Activity implements Callback{
 			unbindService(mConnectionToMessengerService);
 			serviceBound = false;
 		}
+	}
+
+	@Override
+	protected void onDestroy() {
+		unbindService(aidlConnection);
 	}
 
 
@@ -299,7 +316,7 @@ public class MainActivity extends Activity implements Callback{
 			mService.startThread(getShiftProgress() + actualProgress);
 		}
 
-		sendMessage(getShiftProgress() + actualProgress);
+		sendMessageToMessengerService(getShiftProgress() + actualProgress);
 	}
 
 	public int getMaxValue() {
@@ -328,7 +345,7 @@ public class MainActivity extends Activity implements Callback{
 			mService.startThread(getShiftProgress() + actualProgress);
 		}
 
-		sendMessage(getShiftProgress() + actualProgress);
+		sendMessageToMessengerService(getShiftProgress() + actualProgress);
 	}
 
 	public int getShiftProgress() {
@@ -362,7 +379,7 @@ public class MainActivity extends Activity implements Callback{
 		});
 	}
 
-	private void sendMessage(final int value) {
+	private void sendMessageToMessengerService(final int value) {
 		if(serviceBound){
 			//from here
 			Thread thread = new Thread() {
@@ -384,6 +401,29 @@ public class MainActivity extends Activity implements Callback{
 			};
 			thread.start();
 		}
+	}
+	
+	private void sendMessageToAidlMessenger(final int progress) {
+		new Thread(){
+			
+			public void run() {
+				final String s;
+				try {
+					s = aidlService.notifySettingCompleted(progress);
+					
+					handler.post(new Runnable() {
+						@Override
+						public void run() {
+							result_view_4_aidl_service.setText(s);
+						}
+					});
+					
+				} catch (RemoteException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			};
+		}.start();
 	}
 
 	// Most code for Communication with MessengerService (SeekBarServiceMessenger)
@@ -411,7 +451,7 @@ public class MainActivity extends Activity implements Callback{
 
 	class IncomingHandler extends Handler {
 		@Override
-		
+
 		public void handleMessage(Message msg) {
 			switch (msg.what) {
 			case MSG_PROGRESS_EVALUATED:
@@ -422,7 +462,26 @@ public class MainActivity extends Activity implements Callback{
 			}
 		}
 	}
-	
+
 	// End of code for Communication with MessengerService (SeekBarServiceMessenger)
 
+
+	// Most code for communication using aidl
+
+	ISeekBarService aidlService;
+	AidlConnection aidlConnection;
+
+	public class AidlConnection implements ServiceConnection{
+
+		@Override
+		public void onServiceConnected(ComponentName arg0, IBinder service) {
+			aidlService = ISeekBarService.Stub.asInterface(service);
+
+		}
+
+		@Override
+		public void onServiceDisconnected(ComponentName arg0) {
+			aidlService = null;
+		}
+	}
 }

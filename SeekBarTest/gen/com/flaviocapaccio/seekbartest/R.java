@@ -31,9 +31,10 @@ public final class R {
         public static final int leftArrowButton=0x7f090000;
         public static final int maxProgressValueView=0x7f090005;
         public static final int maxValueInput=0x7f090008;
-        public static final int menu_settings=0x7f09000d;
+        public static final int menu_settings=0x7f09000e;
         public static final int minProgressValueView=0x7f090004;
         public static final int minValueInput=0x7f090006;
+        public static final int result_view_4_aidl_service=0x7f09000d;
         public static final int result_view_4_broadcast_service=0x7f09000a;
         public static final int result_view_4_local_service=0x7f09000b;
         public static final int result_view_4_messenger_service=0x7f09000c;

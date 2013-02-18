@@ -4,10 +4,14 @@ import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
 import android.text.format.DateFormat;
+import android.util.Log;
 
 class HandlingMessageThread extends Thread {
+	
+	private static final String TAG = "seekbartest";
 	private Messenger handler;
 	private int progress;
+	
 
 	public HandlingMessageThread(Messenger handler) {
 		this.handler = handler;
@@ -27,8 +31,7 @@ class HandlingMessageThread extends Thread {
 		try {
 			handler.send(msg);
 		} catch (RemoteException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			Log.e(TAG, "RemoteException in notifySettingCompleted", e);
 		}
 	}
 	

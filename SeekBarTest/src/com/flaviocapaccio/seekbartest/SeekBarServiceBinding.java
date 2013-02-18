@@ -6,8 +6,11 @@ import android.os.Binder;
 import android.os.IBinder;
 import android.os.SystemClock;
 import android.text.format.DateFormat;
+import android.util.Log;
 
 public class SeekBarServiceBinding extends Service {
+	
+	private String TAG = "seekbartest";
 	
 	private final IBinder mBinder = new LocalBinder();
 	
@@ -20,7 +23,6 @@ public class SeekBarServiceBinding extends Service {
 		}
 	}
 
-
 	public IBinder onBind(Intent arg0) {
 		return mBinder;
 	}
@@ -28,6 +30,8 @@ public class SeekBarServiceBinding extends Service {
 	public void startThread(final int progress) {
 
 		new Thread() {
+			private String TAG;
+
 			@Override
 			public void run() {
 				try {
@@ -36,7 +40,7 @@ public class SeekBarServiceBinding extends Service {
 					String res = "LocalService message: Valore settato a " + progress + ".\nUltimo aggiornamento: " + DateFormat.format("MM/dd/yy h:mmaa", System.currentTimeMillis()) + ".";
 					caller.notifySettingCompleted(res);
 				} catch (InterruptedException e) {
-					e.printStackTrace();
+					Log.e(TAG, "InterruptException in startThread", e);
 				}
 			}
 		}.start();

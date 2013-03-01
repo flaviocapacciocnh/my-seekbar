@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<GridLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/mySeekBar"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" 
+    android:layout_gravity="center"
+    android:columnCount="3"
+    android:padding="10dp"
+    android:rowCount="2" >
+
+    <ImageButton
+        android:id="@+id/leftArrowButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_column="0"
+        android:layout_row="0"
+        android:background="@color/white"
+        android:paddingRight="1dp"
+        android:src="@drawable/left_arrow" />
+
+    <RelativeLayout
+        android:id="@+id/rl"
+        android:layout_width="200dp"
+        android:layout_height="40dp"
+        android:layout_column="1"
+        android:layout_row="0"
+        android:gravity="center_horizontal"
+        android:padding="0dp" >
+
+        <SeekBar
+            android:id="@+id/seekBar"
+            android:layout_width="200dp"
+            android:layout_height="50dp"
+            android:layout_centerInParent="true"
+            android:maxHeight="50dp"
+            android:minHeight="50dp"
+            android:padding="0dp"
+            android:max="300"
+            android:progressDrawable="@drawable/horizbar"
+            android:thumb="@drawable/line" />
+
+        <TextView
+            android:id="@+id/tvProgress"
+            android:freezesText="true"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:layout_centerInParent="true"
+            android:textColor="@color/white"
+            android:textStyle="bold" />
+    </RelativeLayout>
+
+    <ImageButton
+        android:id="@+id/rightArrowButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_column="2"
+        android:layout_row="0"
+        android:background="@color/white"
+        android:paddingLeft="1dp"
+        android:src="@drawable/right_arrow" />
+
+    <TextView
+        android:id="@+id/minProgressValueView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_column="0"
+        android:layout_row="1"
+        android:gravity="left"
+        android:freezesText="true"
+        android:text="0"
+        android:textStyle="bold"
+        android:width="40dp" />
+
+    <TextView
+        android:id="@+id/maxProgressValueView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_column="2"
+        android:layout_row="1"
+        android:gravity="right"
+        android:freezesText="true"
+        android:text="300"
+        android:textStyle="bold"
+        android:width="40dp" />
+
+</GridLayout>

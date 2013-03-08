@@ -89,9 +89,7 @@ public class MySeekBar extends GridLayout{
 	OnClickListener leftButtonListener = new OnClickListener() {
 		@Override
 		public void onClick(View v) {
-			if(onLeftButtonClicked!=null){
-				onLeftButtonClicked.onLeftButtonClicked();
-			}
+			
 			if((getActualProgress() +  getShiftProgress() - step) <= minValue)	
 			{
 				setActualProgress(minValue - getShiftProgress());
@@ -103,6 +101,10 @@ public class MySeekBar extends GridLayout{
 			setActualProgress(getActualProgress() - step);
 			progressTv.setText("" + (getActualProgress()  + getShiftProgress()));
 			seekBar.setProgress(getActualProgress());	
+			
+			if(onLeftButtonClicked!=null){
+				onLeftButtonClicked.onLeftButtonClicked();
+			}
 		}
 	};
 
@@ -110,10 +112,7 @@ public class MySeekBar extends GridLayout{
 
 		@Override
 		public void onClick(View v) {
-			if(onRightButtonClicked!=null){
-				onRightButtonClicked.onRightButtonClicked();
-			}
-			
+
 			if((getActualProgress() + getShiftProgress() + step)>=maxValue)
 			{
 				setActualProgress(maxValue - getShiftProgress());
@@ -125,7 +124,10 @@ public class MySeekBar extends GridLayout{
 			setActualProgress(getActualProgress() + step);
 			progressTv.setText("" + (getActualProgress() + getShiftProgress()));
 			seekBar.setProgress(getActualProgress());
-
+			
+			if(onRightButtonClicked!=null){
+				onRightButtonClicked.onRightButtonClicked();
+			}
 		}
 	};
 
@@ -147,12 +149,11 @@ public class MySeekBar extends GridLayout{
 
 		@Override
 		public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-			if(onMySeekBarChangeListener!=null){
-				onMySeekBarChangeListener.onProgressChanged(seekBar, progress);
-			}
 			progressTv.setText("" + (getShiftProgress() + progress));
 			setActualProgress(progress);
-
+			if(onMySeekBarChangeListener!=null){
+				onMySeekBarChangeListener.onProgressChanged(seekBar);
+			}
 		}
 	};
 
@@ -251,4 +252,23 @@ public class MySeekBar extends GridLayout{
 		progressTv.setText("" + (getShiftProgress()) );
 		maxProgressValueView.setText("" + getMaxValue());
 	}
+
+	public int getProgress(){
+		return (getActualProgress()  + getShiftProgress());
+	}
+
+	public interface OnLeftButtonClicked {
+		public abstract void onLeftButtonClicked();
+	}
+
+	public interface OnMySeekBarChangeListener {
+		public abstract void onStopTrackingTouch(SeekBar seekBar);
+		public abstract void onStartTrackingTouch(SeekBar seekBar);
+		public abstract void onProgressChanged(SeekBar seekBar);
+	}
+
+	public interface OnRightButtonClicked {
+		public abstract void onRightButtonClicked();
+	}
+
 }

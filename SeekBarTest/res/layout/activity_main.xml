@@ -1,12 +1,82 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:padding="10dp"
+    android:orientation="vertical"
+    android:gravity="center"
     tools:context=".MainActivity" >
 
-    <com.flaviocapaccio.widgettest.MySeekBar
+    <com.flaviocapaccio.seekbartest.MySeekBar
         android:id="@+id/ms"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" >
-    </com.flaviocapaccio.widgettest.MySeekBar>
-</RelativeLayout>
+    </com.flaviocapaccio.seekbartest.MySeekBar>
+    
+    <LinearLayout
+        android:layout_width="300dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal" >
+
+        <TextView
+            android:id="@+id/result_view_4_broadcast_service"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:freezesText="true"
+            android:hint="@string/waiting"
+            android:paddingLeft="10dp"
+            android:padding="5dp"
+            android:textSize="@dimen/small_text_for_service_message" />
+    </LinearLayout>
+    
+    <LinearLayout
+        android:layout_width="300dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal" >
+
+        <TextView
+            android:id="@+id/result_view_4_local_service"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:freezesText="true"
+            android:hint="@string/waiting"
+            android:paddingLeft="10dp"
+            android:padding="5dp"
+            android:textSize="@dimen/small_text_for_service_message" />
+    </LinearLayout>
+    
+     <LinearLayout
+        android:layout_width="300dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal" >
+
+        <TextView
+            android:id="@+id/result_view_4_messenger_service"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:freezesText="true"
+            android:hint="@string/waiting"
+            android:paddingLeft="10dp"
+            android:padding="5dp"
+            android:textSize="@dimen/small_text_for_service_message" />
+    </LinearLayout>
+    
+      <LinearLayout
+        android:layout_width="300dp"
+        android:layout_height="wrap_content"
+        android:layout_column="0"
+        android:layout_columnSpan="3"
+        android:layout_row="7"
+        android:orientation="horizontal" >
+
+        <TextView
+            android:id="@+id/result_view_4_aidl_service"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:freezesText="true"
+            android:hint="@string/waiting"
+            android:paddingLeft="10dp"
+            android:padding="5dp"
+            android:textSize="@dimen/small_text_for_service_message" />
+    </LinearLayout>
+</LinearLayout>

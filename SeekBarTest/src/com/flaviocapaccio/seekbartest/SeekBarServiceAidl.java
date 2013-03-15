@@ -1,5 +1,8 @@
 package com.flaviocapaccio.seekbartest;
 
+import com.flaviocapaccio.seekbartest.ISeekBarService;
+import com.flaviocapaccio.seekbartest.ISeekBarService.Stub;
+
 import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;

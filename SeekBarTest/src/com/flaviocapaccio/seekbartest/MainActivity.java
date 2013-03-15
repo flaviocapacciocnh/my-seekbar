@@ -15,8 +15,13 @@ import android.os.Messenger;
 import android.os.RemoteException;
 import android.util.Log;
 import android.view.Menu;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.flaviocapaccio.seekbartest.MySeekBar.OnLeftButtonClicked;
 import com.flaviocapaccio.seekbartest.MySeekBar.OnMySeekBarChangeListener;
@@ -28,6 +33,9 @@ public class MainActivity extends Activity{
 
 	static final int MSG_PROGRESS = 1;
 	public static final int MSG_PROGRESS_EVALUATED = 2;
+	private static final String STEP = "step";
+	private static final String RANGE_MIN = "range_min";
+	private static final String RANGE_MAX = "range_max";
 	private String TAG = "seekbartest";
 
 	TextView result_view_4_broadcast_service;
@@ -35,11 +43,15 @@ public class MainActivity extends Activity{
 	TextView result_view_4_messenger_service;
 	TextView result_view_4_aidl_service;
 
-	MySeekBar mySeekBar;	
+	Button stepButton;
+	Button minRangeButton;
+	Button maxRangeButton;
+
+	MySeekBar mySeekBar;
 
 	private ResponseReceiver receiver;
 
-	boolean mBound = false;
+	boolean localServiceBound = false;
 	SeekBarServiceBinding mService;
 
 	Intent intent_4_broadcast_service;
@@ -53,22 +65,25 @@ public class MainActivity extends Activity{
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 
-		intent_filter_from_broadcast_service = new IntentFilter(ResponseReceiver.ACTION_RESP);
-		intent_filter_from_broadcast_service.addCategory(Intent.CATEGORY_DEFAULT);
-		receiver = new ResponseReceiver();
-		registerReceiver(receiver, intent_filter_from_broadcast_service);
-
-		bindService(new Intent(this, SeekBarServiceBinding.class), mConnection, Context.BIND_AUTO_CREATE);
-
-		intent_4_broadcast_service = new Intent(getApplicationContext(), SeekBarServiceBroadcast.class);
-
 		result_view_4_broadcast_service = (TextView) findViewById(R.id.result_view_4_broadcast_service);
 		result_view_4_local_service = (TextView) findViewById(R.id.result_view_4_local_service);
 		result_view_4_messenger_service = (TextView) findViewById(R.id.result_view_4_messenger_service);
 		result_view_4_aidl_service = (TextView) findViewById(R.id.result_view_4_aidl_service);
+		stepButton = (Button) findViewById(R.id.button_4_step);
+		minRangeButton = (Button) findViewById(R.id.button_4_min);
+		maxRangeButton = (Button) findViewById(R.id.button_4_max);
 
 
 		mySeekBar = (MySeekBar) findViewById(R.id.ms);
+
+		intent_filter_from_broadcast_service = new IntentFilter(ResponseReceiver.ACTION_RESP);
+		intent_filter_from_broadcast_service.addCategory(Intent.CATEGORY_DEFAULT);	
+		receiver = new ResponseReceiver();
+		registerReceiver(receiver, intent_filter_from_broadcast_service);
+
+		intent_4_broadcast_service = new Intent(getApplicationContext(), SeekBarServiceBroadcast.class);
+
+		bindService(new Intent(this, SeekBarServiceBinding.class), mConnectionToLocalService, Context.BIND_AUTO_CREATE);
 
 		bindService(new Intent(this, SeekBarServiceMessenger.class), mConnectionToMessengerService , Context.BIND_AUTO_CREATE);
 
@@ -76,12 +91,11 @@ public class MainActivity extends Activity{
 		aidlConnection = new AidlConnection();
 		Intent intentToAidl = new Intent("com.flaviocapaccio.seekbartest.SeekBarServiceAidl");
 		bindService(intentToAidl, aidlConnection, Context.BIND_AUTO_CREATE);
-		
+
 
 		mySeekBar.setOnLeftButtonClicked(new OnLeftButtonClicked() {
 			@Override
 			public void onLeftButtonClicked() {
-				Log.d("flavio", "Sei in onleftclick del main");
 				sendMessageToServices(mySeekBar.getProgress());
 			}
 		});
@@ -90,7 +104,6 @@ public class MainActivity extends Activity{
 
 			@Override
 			public void onRightButtonClicked() {
-				Log.d("flavio", "Sei in onrightclick del main");
 				sendMessageToServices(mySeekBar.getProgress());
 			}
 		});
@@ -99,19 +112,49 @@ public class MainActivity extends Activity{
 
 			@Override
 			public void onStopTrackingTouch(SeekBar seekBar) {
-				Log.d("flavio", "Main activity stopped seekbar");
 				sendMessageToServices(mySeekBar.getProgress());
 			}
 
 			@Override
 			public void onStartTrackingTouch(SeekBar seekBar) {
-				Log.d("flavio", "Main activity started seekbar");
 			}
 
 			@Override
 			public void onProgressChanged(SeekBar seekBar) {
-				Log.d("flavio", "Main activity progress changed: ");
-				sendMessageToServices(mySeekBar.getProgress());
+			}
+		});
+
+		stepButton.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				EditText et = (EditText) findViewById(R.id.edit_text_4_step);
+				int step = Integer.parseInt(et.getText().toString());
+				try {
+					mySeekBar.setStep(step);
+				} catch (InvalidParametersException e) {
+					Toast.makeText(getApplicationContext(), "Step non valido!", Toast.LENGTH_LONG).show();
+				}
+			}
+		});
+
+		minRangeButton.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				EditText et = (EditText) findViewById(R.id.edit_text_4_min);
+				int min = Integer.parseInt(et.getText().toString());
+				mySeekBar.setMinValue(min);
+			}
+		});
+
+		maxRangeButton.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				EditText et = (EditText) findViewById(R.id.edit_text_4_max);
+				int max = Integer.parseInt(et.getText().toString());
+				mySeekBar.setMaxValue(max);
 			}
 		});
 
@@ -120,15 +163,15 @@ public class MainActivity extends Activity{
 	@Override
 	protected void onStop() {
 		unregisterReceiver(receiver);
-		
-		if (mBound) {
-			unbindService(mConnection);
-			mBound = false;
+
+		if (localServiceBound) {
+			unbindService(mConnectionToLocalService);
+			localServiceBound = false;
 		}
 
-		if(serviceBound){
+		if(messengerServiceBound){
 			unbindService(mConnectionToMessengerService);
-			serviceBound = false;
+			messengerServiceBound = false;
 		}
 		super.onStop();
 	}
@@ -144,11 +187,11 @@ public class MainActivity extends Activity{
 		intent_4_broadcast_service.putExtra("Value", value);
 		startService(intent_4_broadcast_service);
 
-		if (mBound) {
+		if (localServiceBound) {
 			mService.startThread(mySeekBar.getProgress());
 		}
 
-		if(serviceBound){
+		if(messengerServiceBound){
 			sendMessageToMessengerService(mySeekBar.getProgress());
 		}
 
@@ -164,28 +207,20 @@ public class MainActivity extends Activity{
 		}
 	}
 
-	private ServiceConnection mConnection = new ServiceConnection() {
+	private ServiceConnection mConnectionToLocalService = new ServiceConnection() {
 
 		@Override
 		public void onServiceConnected(ComponentName className, IBinder service) {
 			LocalBinder binder = (LocalBinder) service;
 			mService = binder.getService(new Callback());
-			mBound = true;
+			localServiceBound = true;
 		}
 
 		@Override
 		public void onServiceDisconnected(ComponentName arg0) {
-			mBound = false;
+			localServiceBound = false;
 		}
 	};
-
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.activity_main, menu);
-		return true;
-	}
-
 
 	public class Callback implements ICallback{
 		public void notifySettingCompleted(final String s) {
@@ -200,20 +235,14 @@ public class MainActivity extends Activity{
 	}
 
 	private void sendMessageToMessengerService(final int value) {
-		Thread thread = new Thread() {
 
-			public void run() {
-
-				Message msg = Message.obtain(null, MSG_PROGRESS, value , 0);
-				msg.replyTo = replyMessenger;
-				try {
-					activityMessenger.send(msg);
-				} catch (RemoteException e) {
-					Log.e(TAG, "RemoteException in sendMessageToMessengerService", e);
-				}
-			}
-		};
-		thread.start();
+		Message msg = Message.obtain(null, MSG_PROGRESS, value , 0);
+		msg.replyTo = replyMessenger;
+		try {
+			activityMessenger.send(msg);
+		} catch (RemoteException e) {
+			Log.e(TAG, "RemoteException in sendMessageToMessengerService", e);
+		}
 	}
 
 	private void sendMessageToAidlMessenger(final int progress) {
@@ -255,21 +284,20 @@ public class MainActivity extends Activity{
 
 	// Most code for Communication with MessengerService (SeekBarServiceMessenger)
 	Messenger activityMessenger;
-	Boolean serviceBound;
+	Boolean messengerServiceBound;
 
 	private ServiceConnection mConnectionToMessengerService = new ServiceConnection() {
 
 		@Override
 		public void onServiceDisconnected(ComponentName arg0) {
 			activityMessenger = null;
-			serviceBound = false;
+			messengerServiceBound = false;
 		}
 
 		@Override
 		public void onServiceConnected(ComponentName arg0, IBinder service) {
 			activityMessenger = new Messenger(service);
-			serviceBound = true;
-
+			messengerServiceBound = true;
 		}
 	};
 
@@ -290,6 +318,14 @@ public class MainActivity extends Activity{
 		public void onServiceDisconnected(ComponentName arg0) {
 			aidlService = null;
 		}
+	}
+
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		// Inflate the menu; this adds items to the action bar if it is present.
+		getMenuInflater().inflate(R.menu.activity_main, menu);
+		return true;
 	}
 
 }

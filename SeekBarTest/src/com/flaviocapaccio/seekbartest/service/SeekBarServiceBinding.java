@@ -1,4 +1,4 @@
-package com.flaviocapaccio.seekbartest;
+package com.flaviocapaccio.seekbartest.service;
 
 import android.app.Service;
 import android.content.Intent;

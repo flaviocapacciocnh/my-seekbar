@@ -14,6 +14,65 @@
     </com.flaviocapaccio.seekbartest.MySeekBar>
     
     <LinearLayout
+        android:layout_width="350dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_horizontal" >
+        
+        <EditText 
+            android:id="@+id/edit_text_4_step"
+            android:layout_width="50dp"
+            android:layout_height="match_parent"
+            android:paddingLeft="10dp"
+            android:padding="5dp"
+            android:inputType="numberSigned" 
+            />
+
+        <Button 
+            android:id="@+id/button_4_step"
+            android:layout_width="60dp"
+            android:layout_height="match_parent"
+            android:paddingLeft="10dp"
+            android:padding="5dp"
+            android:text="Step"
+            android:textSize="@dimen/small_text_for_service_message"/>
+        
+         <EditText 
+            android:id="@+id/edit_text_4_min"
+            android:layout_width="50dp"
+            android:layout_height="match_parent"
+            android:paddingLeft="10dp"
+            android:padding="5dp"
+            android:inputType="numberSigned" />
+
+        <Button 
+            android:id="@+id/button_4_min"
+            android:layout_width="60dp"
+            android:layout_height="match_parent"
+            android:paddingLeft="10dp"
+            android:padding="5dp"
+            android:text="Min"
+            android:textSize="@dimen/small_text_for_service_message"/>
+        
+         <EditText 
+            android:id="@+id/edit_text_4_max"
+            android:layout_width="50dp"
+            android:layout_height="match_parent"
+            android:paddingLeft="10dp"
+            android:padding="5dp"
+            android:inputType="numberSigned" />
+
+        <Button 
+            android:id="@+id/button_4_max"
+            android:layout_width="60dp"
+            android:layout_height="match_parent"
+            android:paddingLeft="10dp"
+            android:padding="5dp"
+            android:text="Max"
+            android:textSize="@dimen/small_text_for_service_message"/>
+    </LinearLayout>
+    
+    <LinearLayout
         android:layout_width="300dp"
         android:layout_height="wrap_content"
         android:orientation="horizontal" >

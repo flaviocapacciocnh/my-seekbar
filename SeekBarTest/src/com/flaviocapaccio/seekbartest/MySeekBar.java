@@ -1,7 +1,10 @@
 package com.flaviocapaccio.seekbartest;
 
 import android.content.Context;
+import android.os.Bundle;
+import android.os.Parcelable;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,6 +17,11 @@ import android.widget.Toast;
 
 public class MySeekBar extends GridLayout{
 
+	private static final String SHIFT_PROGRESS = "shift_progress";
+	private static final String ACTUAL_PROGRESS = "actual_progress";
+	private static final String STEP = "step";
+	private static final String MIN_VALUE = "min_value";
+	private static final String MAX_VALUE = "max_value";
 	OnLeftButtonClicked onLeftButtonClicked = null;
 	OnRightButtonClicked onRightButtonClicked = null;
 	OnMySeekBarChangeListener onMySeekBarChangeListener = null;
@@ -89,7 +97,7 @@ public class MySeekBar extends GridLayout{
 	OnClickListener leftButtonListener = new OnClickListener() {
 		@Override
 		public void onClick(View v) {
-			
+
 			if((getActualProgress() +  getShiftProgress() - step) <= minValue)	
 			{
 				setActualProgress(minValue - getShiftProgress());
@@ -101,7 +109,7 @@ public class MySeekBar extends GridLayout{
 			setActualProgress(getActualProgress() - step);
 			progressTv.setText("" + (getActualProgress()  + getShiftProgress()));
 			seekBar.setProgress(getActualProgress());	
-			
+
 			if(onLeftButtonClicked!=null){
 				onLeftButtonClicked.onLeftButtonClicked();
 			}
@@ -124,12 +132,13 @@ public class MySeekBar extends GridLayout{
 			setActualProgress(getActualProgress() + step);
 			progressTv.setText("" + (getActualProgress() + getShiftProgress()));
 			seekBar.setProgress(getActualProgress());
-			
+
 			if(onRightButtonClicked!=null){
 				onRightButtonClicked.onRightButtonClicked();
 			}
 		}
 	};
+
 
 	OnSeekBarChangeListener onSeekBarChangeListener = new OnSeekBarChangeListener() {
 
@@ -192,8 +201,10 @@ public class MySeekBar extends GridLayout{
 		return step;
 	}
 
-	//Check if step has a valid value
 	public void setStep(int step) {
+		if(step<=0){
+			throw new InvalidParametersException("Step non valido");
+		}
 		this.step = step;
 	}
 
@@ -257,6 +268,39 @@ public class MySeekBar extends GridLayout{
 		return (getActualProgress()  + getShiftProgress());
 	}
 
+
+	@Override
+	public Parcelable onSaveInstanceState() {
+
+		Bundle bundle = new Bundle();
+		bundle.putParcelable("instanceState", super.onSaveInstanceState());
+		bundle.putInt(SHIFT_PROGRESS, getShiftProgress());
+		bundle.putInt(ACTUAL_PROGRESS, getActualProgress());
+		bundle.putInt(STEP, getStep());
+		bundle.putInt(MIN_VALUE, getMinValue());
+		bundle.putInt(MAX_VALUE, getMaxValue());
+		Log.d("flavio", "onSave widget. Shift progress: " + getActualProgress());
+		return bundle;
+	}
+
+	@Override
+	public void onRestoreInstanceState(Parcelable state) {
+		if (state instanceof Bundle) {
+			Bundle bundle = (Bundle) state;
+			this.actualProgress = bundle.getInt(ACTUAL_PROGRESS);
+			this.shiftProgress = bundle.getInt(SHIFT_PROGRESS);
+			this.step = bundle.getInt(STEP);
+			this.minValue = bundle.getInt(MIN_VALUE);
+			this.maxValue = bundle.getInt(MAX_VALUE);
+			
+			super.onRestoreInstanceState(bundle.getParcelable("instanceState"));
+			return;
+		}
+
+		super.onRestoreInstanceState(state);
+
+	}
+
 	public interface OnLeftButtonClicked {
 		public abstract void onLeftButtonClicked();
 	}
@@ -270,5 +314,4 @@ public class MySeekBar extends GridLayout{
 	public interface OnRightButtonClicked {
 		public abstract void onRightButtonClicked();
 	}
-
 }

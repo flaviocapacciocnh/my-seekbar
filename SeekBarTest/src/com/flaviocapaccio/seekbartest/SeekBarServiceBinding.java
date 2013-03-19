@@ -4,20 +4,19 @@ import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
-import android.os.SystemClock;
 import android.text.format.DateFormat;
 import android.util.Log;
 
 public class SeekBarServiceBinding extends Service {
-	
-	private String TAG = "seekbartest";
-	
+
+	private String TAG = "flavio";
+
 	private final IBinder mBinder = new LocalBinder();
-	
-	static Callback caller;
+
+	static ICallback caller;
 
 	public class LocalBinder extends Binder{		
-		SeekBarServiceBinding getService(Callback caller){
+		SeekBarServiceBinding getService(ICallback caller){
 			SeekBarServiceBinding.caller = caller;
 			return SeekBarServiceBinding.this;
 		}
@@ -30,19 +29,24 @@ public class SeekBarServiceBinding extends Service {
 	public void startThread(final int progress) {
 
 		new Thread() {
-			private String TAG;
 
 			@Override
 			public void run() {
 				try {
-//					I'm simulating time to perform an operation.
+					//I'm simulating time to perform an operation.
 					Thread.sleep(3000);
 					String res = "LocalService message: Valore settato a " + progress + ".\nUltimo aggiornamento: " + DateFormat.format("MM/dd/yy h:mmaa", System.currentTimeMillis()) + ".";
-					caller.notifySettingCompleted(res);
+					if(caller!=null){
+						caller.notifySettingCompleted(res);
+					}
 				} catch (InterruptedException e) {
 					Log.e(TAG, "InterruptException in startThread", e);
 				}
 			}
 		}.start();
+	}
+
+	public interface ICallback {
+		public void notifySettingCompleted(String s);
 	}
 }

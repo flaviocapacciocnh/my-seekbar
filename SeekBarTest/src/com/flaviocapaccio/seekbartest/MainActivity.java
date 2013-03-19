@@ -14,68 +14,54 @@ import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.SeekBar;
-import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.flaviocapaccio.seekbartest.MySeekBar.OnLeftButtonClicked;
+import com.flaviocapaccio.seekbartest.MySeekBar.OnMySeekBarChangeListener;
+import com.flaviocapaccio.seekbartest.MySeekBar.OnRightButtonClicked;
+import com.flaviocapaccio.seekbartest.SeekBarServiceBinding.ICallback;
 import com.flaviocapaccio.seekbartest.SeekBarServiceBinding.LocalBinder;
-//I like this state
 
-public class MainActivity extends Activity implements Callback{
-
-	private static final String MIN_VALUE = "minValue";
-	private static final String MAX_VALUE = "maxValue";
-	private static final String ACTUAL_PROGRESS = "actualProgress";
+public class MainActivity extends Activity{
 
 	static final int MSG_PROGRESS = 1;
 	public static final int MSG_PROGRESS_EVALUATED = 2;
-	
+	private static final String STEP = "step";
+	private static final String RANGE_MIN = "range_min";
+	private static final String RANGE_MAX = "range_max";
 	private String TAG = "seekbartest";
 
-
-	TextView progressTv;
-	TextView minProgressValueView;
-	TextView maxProgressValueView;
 	TextView result_view_4_broadcast_service;
 	TextView result_view_4_local_service;
 	TextView result_view_4_messenger_service;
 	TextView result_view_4_aidl_service;
 
-	SeekBar seekBar;
+	Button stepButton;
+	Button minRangeButton;
+	Button maxRangeButton;
 
-	Button setMinButton;
-	Button setMaxButton;
+	MySeekBar mySeekBar;
 
-	EditText minEditText;
-	EditText maxEditText;
+	private ResponseReceiver receiver;
 
-	ImageButton leftButton;
-	ImageButton rightButton;
-
-	boolean mBound = false;
-
-	ResponseReceiver receiver;
+	boolean localServiceBound = false;
 	SeekBarServiceBinding mService;
+
+	Intent intent_4_broadcast_service;
+
+	IntentFilter intent_filter_from_broadcast_service;
 
 	Handler handler = new Handler();
 
-	int minValue = 0;
-	int maxValue = 300;
-	int shiftProgress = 0;
-	int actualProgress = 0;
-	final int step = 1;
-
+	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-		bindService(new Intent(this, SeekBarServiceMessenger.class), mConnectionToMessengerService , Context.BIND_AUTO_CREATE);
-
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 
@@ -83,136 +69,133 @@ public class MainActivity extends Activity implements Callback{
 		result_view_4_local_service = (TextView) findViewById(R.id.result_view_4_local_service);
 		result_view_4_messenger_service = (TextView) findViewById(R.id.result_view_4_messenger_service);
 		result_view_4_aidl_service = (TextView) findViewById(R.id.result_view_4_aidl_service);
+		stepButton = (Button) findViewById(R.id.button_4_step);
+		minRangeButton = (Button) findViewById(R.id.button_4_min);
+		maxRangeButton = (Button) findViewById(R.id.button_4_max);
 
-		progressTv = (TextView) findViewById(R.id.tvProgress);
 
-		seekBar = (SeekBar) findViewById(R.id.seekBar);
-		seekBar.setMax(maxValue);
+		mySeekBar = (MySeekBar) findViewById(R.id.ms);
 
-		minProgressValueView = (TextView) findViewById(R.id.minProgressValueView);
-		maxProgressValueView = (TextView) findViewById(R.id.maxProgressValueView);
-
-		setMinButton = (Button) findViewById(R.id.setMinButton);
-		setMaxButton = (Button) findViewById(R.id.setMaxButton);
-		leftButton = (ImageButton) findViewById(R.id.leftArrowButton);
-		rightButton = (ImageButton) findViewById(R.id.rightArrowButton);
-
-		minEditText = (EditText) findViewById(R.id.minValueInput);
-		maxEditText = (EditText) findViewById(R.id.maxValueInput);
-
-		bindService(new Intent(this, SeekBarServiceBinding.class), mConnection, Context.BIND_AUTO_CREATE);
-
-		IntentFilter filter = new IntentFilter(ResponseReceiver.ACTION_RESP);
-		filter.addCategory(Intent.CATEGORY_DEFAULT);
+		intent_filter_from_broadcast_service = new IntentFilter(ResponseReceiver.ACTION_RESP);
+		intent_filter_from_broadcast_service.addCategory(Intent.CATEGORY_DEFAULT);	
 		receiver = new ResponseReceiver();
-		registerReceiver(receiver, filter);
-		
+		registerReceiver(receiver, intent_filter_from_broadcast_service);
+
+		intent_4_broadcast_service = new Intent(getApplicationContext(), SeekBarServiceBroadcast.class);
+
+		bindService(new Intent(this, SeekBarServiceBinding.class), mConnectionToLocalService, Context.BIND_AUTO_CREATE);
+
+		bindService(new Intent(this, SeekBarServiceMessenger.class), mConnectionToMessengerService , Context.BIND_AUTO_CREATE);
+
 		//for aidl
 		aidlConnection = new AidlConnection();
 		Intent intentToAidl = new Intent("com.flaviocapaccio.seekbartest.SeekBarServiceAidl");
 		bindService(intentToAidl, aidlConnection, Context.BIND_AUTO_CREATE);
 
-		//decrease minValue of seekbar according to step value and set progress to minimum value
-		leftButton.setOnClickListener(new OnClickListener() {
 
-			public void onClick(View v) {
-				setMinValue(getMinValue() - step);
-				sendMessageToServices(getShiftProgress() + actualProgress);
-			}
-		});
-
-		//increase maxValue of seekbar according to step value and set progress to minimum value
-		rightButton.setOnClickListener(new OnClickListener() {
-
-			public void onClick(View v) {
-				setMaxValue(getMaxValue() + step);
-				sendMessageToServices(getShiftProgress() + actualProgress);
-			}
-		});
-
-
-		setMinButton.setOnClickListener(new OnClickListener() {
+		mySeekBar.setOnLeftButtonClicked(new OnLeftButtonClicked() {
 			@Override
-			public void onClick(View v) {
-				try {
-					int min = Integer.parseInt(minEditText.getText().toString());
-					minEditText.setText("");
-					setMinValue(min);
-					sendMessageToServices(getShiftProgress() + actualProgress);
-				} catch (NumberFormatException e){
-					Toast.makeText(getApplicationContext(), R.string.invalid_input_value, Toast.LENGTH_SHORT).show();
-				}
+			public void onLeftButtonClicked() {
+				sendMessageToServices(mySeekBar.getProgress());
 			}
 		});
 
-		setMaxButton.setOnClickListener(new OnClickListener() {
+		mySeekBar.setOnRightButtonClicked(new OnRightButtonClicked() {
+
 			@Override
-			public void onClick(View v) {
-				try {
-					int max = Integer.parseInt(maxEditText.getText().toString());
-					maxEditText.setText("");
-					setMaxValue(max);
-					sendMessageToServices(getShiftProgress() + actualProgress);
-				} catch (NumberFormatException e){
-					Toast.makeText(getApplicationContext(), R.string.invalid_input_value, Toast.LENGTH_SHORT).show();
-				}
+			public void onRightButtonClicked() {
+				sendMessageToServices(mySeekBar.getProgress());
 			}
 		});
 
-		seekBar.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
+		mySeekBar.setOnMySeekBarChangeListener(new OnMySeekBarChangeListener() {
+
 			@Override
 			public void onStopTrackingTouch(SeekBar seekBar) {
-				sendMessageToServices(getShiftProgress() + actualProgress);
+				sendMessageToServices(mySeekBar.getProgress());
 			}
 
 			@Override
 			public void onStartTrackingTouch(SeekBar seekBar) {
-				// TODO Auto-generated method stub
 			}
 
 			@Override
-			public void onProgressChanged(SeekBar seekBar, int progress,
-					boolean fromUser) {
-				progressTv.invalidate();
-				progressTv.setText("" + (getShiftProgress() + progress) );
-				actualProgress = progress;
+			public void onProgressChanged(SeekBar seekBar) {
 			}
 		});
-	}
-	//end of onCreate()
 
+		stepButton.setOnClickListener(new OnClickListener() {
 
-	protected void onPause() {
-		super.onPause();
-		unregisterReceiver(receiver);
+			@Override
+			public void onClick(View v) {
+				EditText et = (EditText) findViewById(R.id.edit_text_4_step);
+				int step = Integer.parseInt(et.getText().toString());
+				try {
+					mySeekBar.setStep(step);
+				} catch (InvalidParametersException e) {
+					Toast.makeText(getApplicationContext(), "Step non valido!", Toast.LENGTH_LONG).show();
+				}
+			}
+		});
+
+		minRangeButton.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				EditText et = (EditText) findViewById(R.id.edit_text_4_min);
+				int min = Integer.parseInt(et.getText().toString());
+				mySeekBar.setMinValue(min);
+			}
+		});
+
+		maxRangeButton.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				EditText et = (EditText) findViewById(R.id.edit_text_4_max);
+				int max = Integer.parseInt(et.getText().toString());
+				mySeekBar.setMaxValue(max);
+			}
+		});
+
 	}
 
 	@Override
 	protected void onStop() {
-		if (mBound) {
-			unbindService(mConnection);
-			mBound = false;
+		unregisterReceiver(receiver);
+
+		if (localServiceBound) {
+			unbindService(mConnectionToLocalService);
+			localServiceBound = false;
 		}
 
-		if(serviceBound){
+		if(messengerServiceBound){
 			unbindService(mConnectionToMessengerService);
-			serviceBound = false;
+			messengerServiceBound = false;
 		}
 		super.onStop();
 	}
 
 	@Override
 	protected void onDestroy() {
+		stopService(intent_4_broadcast_service);
 		unbindService(aidlConnection);
 		super.onDestroy();
 	}
 
+	private void sendMessageToServices(int value){
+		intent_4_broadcast_service.putExtra("Value", value);
+		startService(intent_4_broadcast_service);
 
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.activity_main, menu);
-		return true;
+		if (localServiceBound) {
+			mService.startThread(mySeekBar.getProgress());
+		}
+
+		if(messengerServiceBound){
+			sendMessageToMessengerService(mySeekBar.getProgress());
+		}
+
+		sendMessageToAidlMessenger(mySeekBar.getProgress());
 	}
 
 	public class ResponseReceiver extends BroadcastReceiver {
@@ -224,141 +207,42 @@ public class MainActivity extends Activity implements Callback{
 		}
 	}
 
-	@Override
-	protected void onSaveInstanceState(Bundle outState) {
-		super.onSaveInstanceState(outState);
-		outState.putInt(MIN_VALUE, minValue);
-		outState.putInt(MAX_VALUE, maxValue);
-		outState.putInt(ACTUAL_PROGRESS, actualProgress);
-	}
-
-	@Override
-	protected void onRestoreInstanceState(Bundle savedInstanceState) {
-		super.onRestoreInstanceState(savedInstanceState);
-		setMinValue(savedInstanceState.getInt(MIN_VALUE));
-		setMaxValue(savedInstanceState.getInt(MAX_VALUE));
-		seekBar.setProgress((savedInstanceState.getInt(ACTUAL_PROGRESS)));
-	}
-
-	private ServiceConnection mConnection = new ServiceConnection() {
+	private ServiceConnection mConnectionToLocalService = new ServiceConnection() {
 
 		@Override
 		public void onServiceConnected(ComponentName className, IBinder service) {
 			LocalBinder binder = (LocalBinder) service;
-			mService = binder.getService(MainActivity.this);
-			mBound = true;
+			mService = binder.getService(new Callback());
+			localServiceBound = true;
 		}
 
 		@Override
 		public void onServiceDisconnected(ComponentName arg0) {
-			mBound = false;
+			localServiceBound = false;
 		}
 	};
 
-	public int getMinValue() {
-		return minValue;
-	}
+	public class Callback implements ICallback{
+		public void notifySettingCompleted(final String s) {
+			handler.post(new Runnable() {
+				@Override
+				public void run() {
+					result_view_4_local_service.setText(s);
+				}
+			});
 
-	public void setMinValue(int minValue) {
-		if(minValue>getMaxValue()){
-			Toast toast = Toast.makeText(getApplicationContext(), R.string.indalid_min, Toast.LENGTH_SHORT);
-			toast.setGravity(Gravity.TOP, 0, 0);
-			toast.show();
-			return;
 		}
-		int currentShiftProgress = getShiftProgress();
-		if(minValue<0){
-			if(minValue<getMinValue()){
-				int dif = getMinValue() - minValue;
-				setShiftProgress(currentShiftProgress + dif);
-			} else {
-				int dif = minValue - getMinValue();
-				setShiftProgress(currentShiftProgress - dif);
-			}
-		}
-
-		if(minValue<getMinValue()){
-			int dif = getMinValue() - minValue;
-			setShiftProgress(currentShiftProgress - dif);
-		} else {
-			int dif = minValue - getMinValue();
-			setShiftProgress(currentShiftProgress + dif);
-		}
-
-		this.minValue = minValue;
-		seekBar.setMax(getMaxValue() - minValue);
-		seekBar.setProgress( 0 );
-		progressTv.setText("" + (getShiftProgress()) );
-		minProgressValueView.setText("" + getMinValue());
-	}
-
-	public int getMaxValue() {
-		return maxValue;
-	}
-
-	public void setMaxValue(int maxValue) {
-		if(maxValue<getMinValue()){
-			Toast toast = Toast.makeText(getApplicationContext(), R.string.indalid_max, Toast.LENGTH_SHORT);
-			toast.setGravity(Gravity.TOP, 0, 0);
-			toast.show();
-			return;
-		}
-
-		seekBar.setMax(maxValue -  getShiftProgress());
-		this.maxValue = maxValue;
-		seekBar.setProgress( 0 );
-		progressTv.setText("" + (getShiftProgress()) );
-		maxProgressValueView.setText("" + getMaxValue());
-	}
-
-	public int getShiftProgress() {
-		return shiftProgress;
-	}
-
-	public void setShiftProgress(int shiftProgress) {
-		this.shiftProgress = shiftProgress;
-	}
-
-
-	public int getActualProgress() {
-		return actualProgress;
-	}
-
-
-	public void setActualProgress(int actualProgress) {
-		this.actualProgress = actualProgress;
-	}
-
-
-	@Override
-	public void notifySettingCompleted(final String s) {
-
-		handler.post(new Runnable() {
-
-			@Override
-			public void run() {
-				result_view_4_local_service.setText(s);
-			}
-		});
 	}
 
 	private void sendMessageToMessengerService(final int value) {
-		Thread thread = new Thread() {
-			
-			
 
-			public void run() {
-
-				Message msg = Message.obtain(null, MSG_PROGRESS, value , 0);
-				msg.replyTo = replyMessenger;
-				try {
-					activityMessenger.send(msg);
-				} catch (RemoteException e) {
-					Log.e(TAG, "RemoteException in sendMessageToMessengerService", e);
-				}
-			}
-		};
-		thread.start();
+		Message msg = Message.obtain(null, MSG_PROGRESS, value , 0);
+		msg.replyTo = replyMessenger;
+		try {
+			activityMessenger.send(msg);
+		} catch (RemoteException e) {
+			Log.e(TAG, "RemoteException in sendMessageToMessengerService", e);
+		}
 	}
 
 	private void sendMessageToAidlMessenger(final int progress) {
@@ -382,42 +266,6 @@ public class MainActivity extends Activity implements Callback{
 		}.start();
 	}
 
-	private void sendMessageToServices(int value){
-		if(serviceBound){
-			sendMessageToMessengerService(getShiftProgress() + actualProgress);
-		}
-		
-		sendMessageToAidlMessenger(getShiftProgress() + actualProgress);
-
-		if (mBound) {
-			mService.startThread(getShiftProgress() + actualProgress);
-		}
-
-		Intent intent = new Intent(getApplicationContext(), SeekBarServiceBroadcast.class);
-		intent.putExtra("Value", (getShiftProgress() + actualProgress));
-		startService(intent);
-	}
-
-	// Most code for Communication with MessengerService (SeekBarServiceMessenger)
-	Messenger activityMessenger;
-	Boolean serviceBound;
-
-	private ServiceConnection mConnectionToMessengerService = new ServiceConnection() {
-
-		@Override
-		public void onServiceDisconnected(ComponentName arg0) {
-			activityMessenger = null;
-			serviceBound = false;
-		}
-
-		@Override
-		public void onServiceConnected(ComponentName arg0, IBinder service) {
-			activityMessenger = new Messenger(service);
-			serviceBound = true;
-
-		}
-	};
-
 	//I use this code to manage reply message
 	final Messenger replyMessenger = new Messenger(new IncomingHandler());
 
@@ -434,7 +282,25 @@ public class MainActivity extends Activity implements Callback{
 		}
 	}
 
-	// End of code for Communication with MessengerService (SeekBarServiceMessenger)
+	// Most code for Communication with MessengerService (SeekBarServiceMessenger)
+	Messenger activityMessenger;
+	Boolean messengerServiceBound;
+
+	private ServiceConnection mConnectionToMessengerService = new ServiceConnection() {
+
+		@Override
+		public void onServiceDisconnected(ComponentName arg0) {
+			activityMessenger = null;
+			messengerServiceBound = false;
+		}
+
+		@Override
+		public void onServiceConnected(ComponentName arg0, IBinder service) {
+			activityMessenger = new Messenger(service);
+			messengerServiceBound = true;
+		}
+	};
+
 
 	// Most code for communication using aidl
 
@@ -453,4 +319,13 @@ public class MainActivity extends Activity implements Callback{
 			aidlService = null;
 		}
 	}
+
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		// Inflate the menu; this adds items to the action bar if it is present.
+		getMenuInflater().inflate(R.menu.activity_main, menu);
+		return true;
+	}
+
 }

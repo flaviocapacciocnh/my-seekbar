@@ -1,6 +1,6 @@
 /*
  * This file is auto-generated.  DO NOT MODIFY.
- * Original file: D:\\users\\F58004A\\git\\SeekBarTestGit\\SeekBarTest\\src\\com\\flaviocapaccio\\seekbartest\\ISeekBarService.aidl
+ * Original file: D:\\users\\F58004A\\git\\my-seekbar\\SeekBarTest\\src\\com\\flaviocapaccio\\seekbartest\\ISeekBarService.aidl
  */
 package com.flaviocapaccio.seekbartest;
 public interface ISeekBarService extends android.os.IInterface

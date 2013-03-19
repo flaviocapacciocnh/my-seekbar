@@ -16,7 +16,7 @@ public class SeekBarServiceAidl extends Service{
 	@Override
 	public IBinder onBind(Intent arg0) {
 		return new ISeekBarService.Stub() {
-
+			
 			@Override
 			public String notifySettingCompleted(int progress) throws RemoteException {
 				try {

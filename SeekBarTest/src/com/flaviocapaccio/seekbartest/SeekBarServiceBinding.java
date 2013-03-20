@@ -1,5 +1,7 @@
 package com.flaviocapaccio.seekbartest;
 
+import java.util.Random;
+
 import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
@@ -29,16 +31,17 @@ public class SeekBarServiceBinding extends Service {
 	public void startThread(final int progress) {
 
 		new Thread() {
-
 			@Override
 			public void run() {
 				try {
-					//I'm simulating time to perform an operation.
-					Thread.sleep(3000);
-					String res = "LocalService message: Valore settato a " + progress + ".\nUltimo aggiornamento: " + DateFormat.format("MM/dd/yy h:mmaa", System.currentTimeMillis()) + ".";
-					if(caller!=null){
-						caller.notifySettingCompleted(res);
-					}
+					Random rnd1 = new Random(progress);
+					while(true){		
+						Thread.sleep(1000);
+						String res = "LocalService message: Valore settato a " + rnd1.nextInt() + ".\nUltimo aggiornamento: " + DateFormat.format("MM/dd/yy h:mmaa", System.currentTimeMillis()) + ".";
+						if(caller!=null){
+							caller.notifySettingCompleted(res);
+						}
+					}			
 				} catch (InterruptedException e) {
 					Log.e(TAG, "InterruptException in startThread", e);
 				}

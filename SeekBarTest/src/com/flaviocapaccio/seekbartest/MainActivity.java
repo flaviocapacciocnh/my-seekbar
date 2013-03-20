@@ -33,9 +33,6 @@ public class MainActivity extends Activity{
 
 	static final int MSG_PROGRESS = 1;
 	public static final int MSG_PROGRESS_EVALUATED = 2;
-	private static final String STEP = "step";
-	private static final String RANGE_MIN = "range_min";
-	private static final String RANGE_MAX = "range_max";
 	private String TAG = "seekbartest";
 
 	TextView result_view_4_broadcast_service;
@@ -73,7 +70,6 @@ public class MainActivity extends Activity{
 		minRangeButton = (Button) findViewById(R.id.button_4_min);
 		maxRangeButton = (Button) findViewById(R.id.button_4_max);
 
-
 		mySeekBar = (MySeekBar) findViewById(R.id.ms);
 
 		intent_filter_from_broadcast_service = new IntentFilter(ResponseReceiver.ACTION_RESP);
@@ -84,7 +80,6 @@ public class MainActivity extends Activity{
 		intent_4_broadcast_service = new Intent(getApplicationContext(), SeekBarServiceBroadcast.class);
 
 		bindService(new Intent(this, SeekBarServiceBinding.class), mConnectionToLocalService, Context.BIND_AUTO_CREATE);
-
 		bindService(new Intent(this, SeekBarServiceMessenger.class), mConnectionToMessengerService , Context.BIND_AUTO_CREATE);
 
 		//for aidl

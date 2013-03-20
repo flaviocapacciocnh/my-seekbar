@@ -1,5 +1,7 @@
 package com.flaviocapaccio.seekbartest;
 
+import java.util.Random;
+
 import com.flaviocapaccio.seekbartest.MainActivity;
 
 import android.app.Service;
@@ -51,21 +53,25 @@ public class SeekBarServiceMessenger extends Service{
 		}
 
 		private void runSetting(int progr) {
-			try {
-				//I'm simulating time to run operation
-				Thread.sleep(3000);
-			} catch (InterruptedException e1) {
-				Log.e(TAG, "Eccezione lanciata dallo sleep!", e1);
+			Random rnd = new Random(progr);
+			while(true){
+				try {
+					//I'm simulating time to run operation
+					Thread.sleep(1000);
+				} catch (InterruptedException e1) {
+					Log.e(TAG, "Eccezione lanciata dallo sleep!", e1);
+				}
+				Message msg = new Message();
+				String resultTxt = "Messenger message: Valore settato a " + rnd.nextInt() + ".\nUltimo aggiornamento: " + DateFormat.format("MM/dd/yy h:mmaa", System.currentTimeMillis()) + ".";
+				msg.obj = resultTxt;
+				msg.what = MainActivity.MSG_PROGRESS_EVALUATED;
+				try {
+					handler.send(msg);
+				} catch (RemoteException e) {
+					Log.e(TAG, "RemoteException in notifySettingCompleted", e);
+				}
 			}
-			Message msg = new Message();
-			String resultTxt = "Messenger message: Valore settato a " + progr + ".\nUltimo aggiornamento: " + DateFormat.format("MM/dd/yy h:mmaa", System.currentTimeMillis()) + ".";
-			msg.obj = resultTxt;
-			msg.what = MainActivity.MSG_PROGRESS_EVALUATED;
-			try {
-				handler.send(msg);
-			} catch (RemoteException e) {
-				Log.e(TAG, "RemoteException in notifySettingCompleted", e);
-			}
+
 		}
 
 		public int getProgress() {
